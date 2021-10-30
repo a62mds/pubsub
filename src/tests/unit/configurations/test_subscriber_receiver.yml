@@ -1,0 +1,5 @@
+---
+publisher-ip-address: 192.168.0.19
+publisher-port: 1337
+subscriptions:
+  - publication

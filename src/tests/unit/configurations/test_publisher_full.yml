@@ -1,0 +1,5 @@
+---
+ip-address: 192.168.0.19
+port: 1337
+socket-timeout-s: 0.5
+buffer-size-b: 2048
