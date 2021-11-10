@@ -42,6 +42,19 @@ class Subscriber(Messager):
         print(f"  Subscriptions:      {self._subscriptions}")
         print(f"  Publications:       {self._publications}")
 
+    def run(self: Subscriber) -> None:
+        """
+        Run the Subscriber
+        """
+        if not self._is_subscribed:
+            while True:
+                try:
+                    if self.subscribe():
+                        break
+                except ConnectionResetError:
+                    continue
+        super().run()
+
     def subscribe(self: Subscriber) -> bool:
         """
         Subscribe to publications from the Publisher
@@ -65,15 +78,7 @@ class Subscriber(Messager):
         """
         Main client code
         """
-        if not self._is_subscribed:
-            while True:
-                try:
-                    if self.subscribe():
-                        break
-                except ConnectionResetError:
-                    continue
         if self._subscriptions:
-            print("Waiting for a message...")
             message, remote_endpoint = self._receive_message()
             self._process_message(message, remote_endpoint)
         elif self._publications:
