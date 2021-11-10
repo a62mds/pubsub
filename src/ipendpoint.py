@@ -39,6 +39,12 @@ class IPEndpoint(object):
         yield self.ip_address
         yield self.port
 
+    def __eq__(self: IPEndpoint, other: IPEndpoint) -> bool:
+        """
+        Check the equality of two endpoints. Endpoints are equal if their IP addresses and ports are equal.
+        """
+        return self.ip_address == other.ip_address and self.port == other.port
+
     @property
     def ip_address(self: IPEndpoint) -> str:
         """

@@ -74,6 +74,83 @@ class TestIPEndpoint(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             ipendpoint.IPEndpoint(ip_address, port)
 
+    def test_equality_of_equal_endpoints(self) -> None:
+        """
+        Purpose:
+        Ensure that two endpoints constructed from the same IP address and port are equal according to the `__eq__`
+        method.
+
+        Prerequisites:
+        N/A
+
+        Pass condition(s):
+        - The two endpoints are equal
+        """
+        # Arrange
+        ip_address: str = "192.168.0.19"
+        port: int = 1337
+        endpoint1 = ipendpoint.IPEndpoint(ip_address, port)
+        endpoint2 = ipendpoint.IPEndpoint(ip_address, port)
+
+        # Act/assert
+        self.assertEqual(endpoint1, endpoint2)
+
+    def test_inequality_of_endpoints_with_different_ips_but_same_port(self) -> None:
+        """
+        Purpose:
+        Ensure that two endpoints constructed from different IP addresses but the same port are not equal.
+
+        Prerequisites:
+        N/A
+
+        Pass condition(s):
+        - The two endpoints are not equal
+        """
+        # Arrange
+        port: int = 1337
+        endpoint1 = ipendpoint.IPEndpoint("192.168.0.19", port)
+        endpoint2 = ipendpoint.IPEndpoint("192.168.1.19", port)
+
+        # Act/assert
+        self.assertNotEqual(endpoint1, endpoint2)
+
+    def test_inequality_of_endpoints_with_same_ip_but_different_ports(self) -> None:
+        """
+        Purpose:
+        Ensure that two endpoints constructed from the same IP address but different ports are not equal.
+
+        Prerequisites:
+        N/A
+
+        Pass condition(s):
+        - The two endpoints are not equal
+        """
+        # Arrange
+        ip_address: str = "192.168.0.19"
+        endpoint1 = ipendpoint.IPEndpoint(ip_address, 1337)
+        endpoint2 = ipendpoint.IPEndpoint(ip_address, 1234)
+
+        # Act/assert
+        self.assertNotEqual(endpoint1, endpoint2)
+
+    def test_inequality_of_endpoints_with_different_ips_and_different_ports(self) -> None:
+        """
+        Purpose:
+        Ensure that two endpoints constructed from the same IP address but different ports are not equal.
+
+        Prerequisites:
+        N/A
+
+        Pass condition(s):
+        - The two endpoints are not equal
+        """
+        # Arrange
+        endpoint1 = ipendpoint.IPEndpoint("192.168.0.19", 1337)
+        endpoint2 = ipendpoint.IPEndpoint("192.168.1.19", 1234)
+
+        # Act/assert
+        self.assertNotEqual(endpoint1, endpoint2)
+
 
 if __name__ == "__main__":
     unittest.main()
