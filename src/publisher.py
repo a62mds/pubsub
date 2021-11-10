@@ -48,9 +48,7 @@ class Publisher(Messager):
         response: Optional[str] = self._process_message(message, remote_endpoint)
         if response:
             self._send_message(response, remote_endpoint)
-        now = datetime.now()
-        for publication, subscribers in self.subscriptions.items():
-            subscribers = [s for s in subscribers if (now - s[1]).total_seconds() < self.subscriber_timeout_s]
+        self._remove_timed_out_subscribers()
 
     def _process_subscribe(self: Publisher, subscribe_message: Message, endpoint: IPEndpoint) -> Message:
         """
@@ -74,3 +72,13 @@ class Publisher(Messager):
         publish_message = Message(MessageType.PUBLISH, datetime.now(), publication, *submit_message.payload[1:])
         for subscriber_endpoint, _ in self.subscriptions.get(publication, list()):
             self._send_message(publish_message, subscriber_endpoint)
+
+    def _remove_timed_out_subscribers(self) -> None:
+        """
+        Check for and remove any timed-out subscribers
+        """
+        now = datetime.now()
+        for publication, subscribers in self.subscriptions.items():
+            self.subscriptions[publication] = [
+                s for s in subscribers if (now - s[1]).total_seconds() < self.subscriber_timeout_s
+            ]
