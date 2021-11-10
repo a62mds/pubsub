@@ -3,7 +3,7 @@ Publisher module
 """
 from __future__ import annotations
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from src.configuration import PublisherConfiguration
 from src.ipendpoint import IPEndpoint
@@ -22,7 +22,8 @@ class Publisher(Messager):
         """
         super().__init__(configuration)
         self.endpoint = configuration.endpoint
-        self.subscriptions: Dict[str, List[IPEndpoint]] = {}
+        self.subscriptions: Dict[str, List[Tuple[IPEndpoint, datetime]]] = {}
+        self.subscriber_timeout_s: float = configuration.subscriber_timeout_s
         self._message_dispatcher: Dict[str, MessageProcessor] = {
             MessageType.SUBSCRIBE: self._process_subscribe,
             MessageType.SUBMIT: self._process_submit
@@ -47,6 +48,9 @@ class Publisher(Messager):
         response: Optional[str] = self._process_message(message, remote_endpoint)
         if response:
             self._send_message(response, remote_endpoint)
+        now = datetime.now()
+        for publication, subscribers in self.subscriptions.items():
+            subscribers = [s for s in subscribers if (now - s[1]).total_seconds() < self.subscriber_timeout_s]
 
     def _process_subscribe(self: Publisher, subscribe_message: Message, endpoint: IPEndpoint) -> Message:
         """
@@ -54,7 +58,8 @@ class Publisher(Messager):
         """
         for publication in subscribe_message.payload:
             print(f"  Added subscription to {publication}")
-            self.subscriptions[publication] = [*self.subscriptions.get(publication, list()), endpoint]
+            timestamp: datetime = subscribe_message.timestamp
+            self.subscriptions[publication] = [*self.subscriptions.get(publication, list()), (endpoint, timestamp)]
         subscribe_message.timestamp = datetime.now()
         return subscribe_message
 
@@ -67,5 +72,5 @@ class Publisher(Messager):
             return
         publication: str = submit_message.payload[0]
         publish_message = Message(MessageType.PUBLISH, datetime.now(), publication, *submit_message.payload[1:])
-        for subscriber_endpoint in self.subscriptions.get(publication, list()):
+        for subscriber_endpoint, _ in self.subscriptions.get(publication, list()):
             self._send_message(publish_message, subscriber_endpoint)

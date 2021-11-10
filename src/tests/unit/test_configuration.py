@@ -11,6 +11,7 @@ from src.configuration import (
     Configuration,
     PublisherConfiguration,
     SOCKET_TIMEOUT_S,
+    SUBSCRIBER_TIMEOUT_S,
     SubscriberConfiguration
 )
 
@@ -57,6 +58,7 @@ class TestPublisherConfiguration(unittest.TestCase):
         port: int = 1337
         socket_timeout_s: float = Configuration.DEFAULTS[SOCKET_TIMEOUT_S]
         buffer_size_b: int = Configuration.DEFAULTS[BUFFER_SIZE_B]
+        subscriber_timeout_s: float = PublisherConfiguration.DEFAULTS[SUBSCRIBER_TIMEOUT_S]
 
         # Act
         config = PublisherConfiguration.from_yaml(UNIT_TEST_CONFIGURATIONS_PATH / "test_publisher.yml")
@@ -66,6 +68,7 @@ class TestPublisherConfiguration(unittest.TestCase):
         self.assertEqual(config.endpoint.port, port)
         self.assertEqual(config.socket_timeout_s, socket_timeout_s)
         self.assertEqual(config.buffer_size_b, buffer_size_b)
+        self.assertEqual(config.subscriber_timeout_s, subscriber_timeout_s)
 
     def test_read_full_publisher_configuration_from_yaml(self) -> None:
         """
@@ -88,6 +91,7 @@ class TestPublisherConfiguration(unittest.TestCase):
         port: 1337
         socket-timeout-s: 0.5
         buffer-size-b: 2048
+        subscriber-timeout-s: 3.0
         ```
         """
         # Arrange
@@ -95,6 +99,7 @@ class TestPublisherConfiguration(unittest.TestCase):
         port: int = 1337
         socket_timeout_s: float = 0.5
         buffer_size_b: int = 2048
+        subscriber_timeout_s: float = 3.0
 
         # Act
         config = PublisherConfiguration.from_yaml(UNIT_TEST_CONFIGURATIONS_PATH / "test_publisher_full.yml")
@@ -104,6 +109,7 @@ class TestPublisherConfiguration(unittest.TestCase):
         self.assertEqual(config.endpoint.port, port)
         self.assertEqual(config.socket_timeout_s, socket_timeout_s)
         self.assertEqual(config.buffer_size_b, buffer_size_b)
+        self.assertEqual(config.subscriber_timeout_s, subscriber_timeout_s)
 
 
 class TestSubscriberConfiguration(unittest.TestCase):

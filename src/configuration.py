@@ -16,6 +16,7 @@ IP_ADDRESS: str = "ip-address"
 PORT: str = "port"
 BUFFER_SIZE_B: str = "buffer-size-b"
 SOCKET_TIMEOUT_S: str = "socket-timeout-s"
+SUBSCRIBER_TIMEOUT_S: str = "subscriber-timeout-s"
 PUBLISHER_IPV4: str = "publisher-ip-address"
 PUBLISHER_PORT: str = "publisher-port"
 SUBSCRIPTIONS: str = "subscriptions"
@@ -100,6 +101,18 @@ class PublisherConfiguration(Configuration):
         **Configuration.DEFAULTS,
         IP_ADDRESS: "127.0.0.1",
         PORT: 5005,
+        SUBSCRIBER_TIMEOUT_S: 5
+    }
+
+    LIMITS: Dict[str, Dict[str, Union[int, float]]] = {
+        MIN: {
+            **Configuration.LIMITS[MIN],
+            SUBSCRIBER_TIMEOUT_S: 0
+        },
+        MAX: {
+            **Configuration.LIMITS[MAX],
+            SUBSCRIBER_TIMEOUT_S: 10
+        }
     }
 
     @classmethod
@@ -117,22 +130,43 @@ class PublisherConfiguration(Configuration):
         port: int = config.get(PORT, cls.DEFAULTS[PORT])
         socket_timeout_s: float = config.get(SOCKET_TIMEOUT_S, cls.DEFAULTS[SOCKET_TIMEOUT_S])
         buffer_size_b: int = config.get(BUFFER_SIZE_B, cls.DEFAULTS[BUFFER_SIZE_B])
+        subscriber_timeout_s: float = config.get(SUBSCRIBER_TIMEOUT_S, cls.DEFAULTS[SUBSCRIBER_TIMEOUT_S])
 
-        return cls(ip_address, port, socket_timeout_s, buffer_size_b)
+        return cls(ip_address, port, socket_timeout_s, buffer_size_b, subscriber_timeout_s)
 
     def __init__(
         self: PublisherConfiguration,
         ip_address: str,
         port: int,
         socket_timeout_s: float,
-        buffer_size_b: int
+        buffer_size_b: int,
+        subscriber_timeout_s: float
     ) -> None:
         """
-        Initialize a `PublisherConfiguration` object with an IPv4, a port, a socket timeout (in seconds), and a buffer
-        size.
+        Initialize a `PublisherConfiguration` object with an IPv4, a port, a socket timeout (in seconds), a buffer
+        size, and a subscriber timeout (in seconds).
         """
         self.endpoint = IPEndpoint(ip_address, port)
         super().__init__(socket_timeout_s, buffer_size_b)
+        self._subscriber_timeout_s: Optional[float] = None
+        self.subscriber_timeout_s: float = subscriber_timeout_s
+
+    @property
+    def subscriber_timeout_s(self: Configuration) -> float:
+        """
+        Get the subscriber timeout in seconds.
+        """
+        return self._subscriber_timeout_s
+
+    @subscriber_timeout_s.setter
+    def subscriber_timeout_s(self: Configuration, subscriber_timeout_s: float) -> None:
+        """
+        Set the subscriber timeout in seconds.
+        """
+        if self.LIMITS[MIN][SUBSCRIBER_TIMEOUT_S] < subscriber_timeout_s <= self.LIMITS[MAX][SUBSCRIBER_TIMEOUT_S]:
+            self._subscriber_timeout_s = subscriber_timeout_s
+            return
+        raise ValueError(f"Invalid subscriber timeout: {subscriber_timeout_s} s")
 
 
 class SubscriberConfiguration(Configuration):
